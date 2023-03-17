@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const Card = require('../models/card');
 const {
   DEFAULT_ERROR_CODE,
@@ -20,10 +22,10 @@ module.exports.getCards = async (req, res) => {
 module.exports.createCard = async (req, res) => {
   try {
     const { name, link } = req.body;
-    const card = await Card.create({ name, link, owner: req.user._id }).populate('owner');
+    const card = await Card.create({ name, link, owner: req.user._id });
     return res.send(card);
   } catch (err) {
-    if (err.name === 'ValidationError') {
+    if (err instanceof mongoose.Error.ValidationError) {
       return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
@@ -36,7 +38,7 @@ module.exports.deleteCard = async (req, res) => {
     await Card.findByIdAndDelete(cardId);
     return res.send({ message: 'Deleted' });
   } catch (err) {
-    if (err.name === 'CastError') {
+    if (err instanceof mongoose.Error.CastError) {
       return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
@@ -52,10 +54,10 @@ module.exports.likeCard = async (req, res) => {
     );
     return res.send(card.likes);
   } catch (err) {
-    if (err.name === 'ValidationError') {
+    if (err instanceof mongoose.Error.ValidationError) {
       return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_ERROR_MESSAGE });
     }
-    if (err.name === 'CastError') {
+    if (err instanceof mongoose.Error.CastError) {
       return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
@@ -71,10 +73,10 @@ module.exports.dislikeCard = async (req, res) => {
     );
     return res.send(card.likes);
   } catch (err) {
-    if (err.name === 'ValidationError') {
+    if (err instanceof mongoose.Error.ValidationError) {
       return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_ERROR_MESSAGE });
     }
-    if (err.name === 'CastError') {
+    if (err instanceof mongoose.Error.CastError) {
       return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
