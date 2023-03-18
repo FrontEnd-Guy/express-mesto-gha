@@ -3,11 +3,12 @@ const mongoose = require('mongoose');
 const Card = require('../models/card');
 const {
   DEFAULT_ERROR_CODE,
-  DEFAULT_ERROR_MESSAGE,
-  NOT_FOUND_CARD_ERROR_MESSAGE,
   NOT_FOUND_ERROR_CODE,
   VALIDATION_ERROR_CODE,
-  VALIDATION_ERROR_MESSAGE,
+  DEFAULT_ERROR_MESSAGE,
+  NOT_FOUND_CARD_ERROR_MESSAGE,
+  VALIDATION_CARD_CREATE_ERROR_MESSAGE,
+  VALIDATION_CARD_LIKE_ERROR_MESSAGE,
 } = require('../utils/constants');
 
 module.exports.getCards = async (req, res) => {
@@ -26,7 +27,9 @@ module.exports.createCard = async (req, res) => {
     return res.send(card);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_ERROR_MESSAGE });
+      return res
+        .status(VALIDATION_ERROR_CODE)
+        .send({ message: VALIDATION_CARD_CREATE_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
   }
@@ -55,7 +58,9 @@ module.exports.likeCard = async (req, res) => {
     return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_ERROR_MESSAGE });
+      return res
+        .status(VALIDATION_ERROR_CODE)
+        .send({ message: VALIDATION_CARD_LIKE_ERROR_MESSAGE });
     }
     if (err instanceof mongoose.Error.CastError) {
       return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
@@ -74,7 +79,9 @@ module.exports.dislikeCard = async (req, res) => {
     return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_ERROR_MESSAGE });
+      return res
+        .status(VALIDATION_ERROR_CODE)
+        .send({ message: VALIDATION_CARD_LIKE_ERROR_MESSAGE });
     }
     if (err instanceof mongoose.Error.CastError) {
       return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });

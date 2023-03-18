@@ -2,17 +2,27 @@ const DEFAULT_ERROR_CODE = 500;
 const NOT_FOUND_ERROR_CODE = 404;
 const VALIDATION_ERROR_CODE = 400;
 
-const DEFAULT_ERROR_MESSAGE = 'DEFAULT ERROR';
-const NOT_FOUND_USER_ERROR_MESSAGE = 'USER HAS NOT BEEN FOUND';
-const NOT_FOUND_CARD_ERROR_MESSAGE = 'CARD HAS NOT BEEN FOUND';
-const VALIDATION_ERROR_MESSAGE = 'INVALID DATA';
+const DEFAULT_ERROR_MESSAGE = 'На сервере произошла ошибка';
+
+const NOT_FOUND_USER_ERROR_MESSAGE = 'Пользователь по указанному _id не найден';
+const VALIDATION_USER_CREATE_ERROR_MESSAGE = 'Переданы некорректные данные при создании пользователя';
+const VALIDATION_USER_INFO_ERROR_MESSAGE = 'Переданы некорректные данные при обновлении профиля';
+const VALIDATION_USER_AVATAR_ERROR_MESSAGE = 'Переданы некорректные данные при обновлении аватара';
+
+const NOT_FOUND_CARD_ERROR_MESSAGE = 'Карточка с указанным _id не найдена';
+const VALIDATION_CARD_CREATE_ERROR_MESSAGE = 'Переданы некорректные данные при создании карточки';
+const VALIDATION_CARD_LIKE_ERROR_MESSAGE = 'Переданы некорректные данные для постановки/снятии лайка';
 
 module.exports = {
   DEFAULT_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,
   VALIDATION_ERROR_CODE,
   DEFAULT_ERROR_MESSAGE,
-  NOT_FOUND_CARD_ERROR_MESSAGE,
   NOT_FOUND_USER_ERROR_MESSAGE,
-  VALIDATION_ERROR_MESSAGE,
+  VALIDATION_USER_CREATE_ERROR_MESSAGE,
+  VALIDATION_USER_INFO_ERROR_MESSAGE,
+  VALIDATION_USER_AVATAR_ERROR_MESSAGE,
+  NOT_FOUND_CARD_ERROR_MESSAGE,
+  VALIDATION_CARD_CREATE_ERROR_MESSAGE,
+  VALIDATION_CARD_LIKE_ERROR_MESSAGE,
 };
