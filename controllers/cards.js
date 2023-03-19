@@ -37,12 +37,13 @@ module.exports.createCard = async (req, res) => {
 
 module.exports.deleteCard = async (req, res) => {
   try {
-    const { cardId } = req.params;
-    await Card.findByIdAndDelete(cardId);
+    await Card.findByIdAndDelete(req.params.cardId);
     return res.send({ message: 'Deleted' });
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+      return res
+        .status(NOT_FOUND_ERROR_CODE)
+        .send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
   }
