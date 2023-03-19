@@ -9,6 +9,7 @@ const {
   NOT_FOUND_CARD_ERROR_MESSAGE,
   VALIDATION_CARD_CREATE_ERROR_MESSAGE,
   VALIDATION_CARD_LIKE_ERROR_MESSAGE,
+  VALIDATION_CARD_ID_ERROR_MESSAGE,
 } = require('../utils/constants');
 
 module.exports.getCards = async (req, res) => {
@@ -37,13 +38,18 @@ module.exports.createCard = async (req, res) => {
 
 module.exports.deleteCard = async (req, res) => {
   try {
-    await Card.findByIdAndDelete(req.params.cardId);
+    const card = await Card.findByIdAndDelete(req.params.cardId);
+    if (card === null) {
+      return res
+        .status(NOT_FOUND_ERROR_CODE)
+        .send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+    }
     return res.send({ message: 'Deleted' });
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
       return res
-        .status(NOT_FOUND_ERROR_CODE)
-        .send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+        .status(VALIDATION_ERROR_CODE)
+        .send({ message: VALIDATION_CARD_ID_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
   }
@@ -56,6 +62,11 @@ module.exports.likeCard = async (req, res) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     );
+    if (card === null) {
+      return res
+        .status(NOT_FOUND_ERROR_CODE)
+        .send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+    }
     return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
@@ -64,7 +75,7 @@ module.exports.likeCard = async (req, res) => {
         .send({ message: VALIDATION_CARD_LIKE_ERROR_MESSAGE });
     }
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_CARD_ID_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
   }
@@ -77,6 +88,11 @@ module.exports.dislikeCard = async (req, res) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     );
+    if (card === null) {
+      return res
+        .status(NOT_FOUND_ERROR_CODE)
+        .send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+    }
     return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
@@ -85,7 +101,7 @@ module.exports.dislikeCard = async (req, res) => {
         .send({ message: VALIDATION_CARD_LIKE_ERROR_MESSAGE });
     }
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_CARD_ERROR_MESSAGE });
+      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_CARD_ID_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
   }

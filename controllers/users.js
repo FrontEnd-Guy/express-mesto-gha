@@ -9,6 +9,7 @@ const {
   VALIDATION_USER_INFO_ERROR_MESSAGE,
   VALIDATION_USER_AVATAR_ERROR_MESSAGE,
   DEFAULT_ERROR_MESSAGE,
+  VALIDATION_USER_ID_ERROR_MESSAGE,
 } = require('../utils/constants');
 
 module.exports.getUsers = async (req, res) => {
@@ -22,12 +23,16 @@ module.exports.getUsers = async (req, res) => {
 
 module.exports.getUser = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await User.findById(req.params.userId);
+    if (user === null) {
+      return res
+        .status(NOT_FOUND_ERROR_CODE)
+        .send({ message: NOT_FOUND_USER_ERROR_MESSAGE });
+    }
     return res.send(user);
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_USER_ERROR_MESSAGE });
+      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_USER_ID_ERROR_MESSAGE });
     }
     return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
   }
