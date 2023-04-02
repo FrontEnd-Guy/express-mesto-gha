@@ -39,6 +39,9 @@ module.exports.createCard = async (req, res) => {
 module.exports.deleteCard = async (req, res) => {
   try {
     const card = await Card.findByIdAndDelete(req.params.cardId);
+    if (card.owner.toString() !== req.user._id) {
+      return res.status(403).send({ message: 'Вы не можете удалять карточки других пользователей' });
+    }
     if (card === null) {
       return res
         .status(NOT_FOUND_ERROR_CODE)

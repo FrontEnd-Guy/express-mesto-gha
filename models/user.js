@@ -1,27 +1,43 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
     minLength: 2,
     maxLength: 30,
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    required: true,
     minLength: 2,
     maxLength: 30,
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
     validate: {
-      validator(v) {
-        return /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/.test(v);
+      validator(value) {
+        return validator.isURL(value);
       },
-      message: (props) => `${props.value} is not a valid url!`,
+      message: 'Invalid URL format',
+    },
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+  },
+  email: {
+    type: String,
+    validate: {
+      validator(value) {
+        return validator.isEmail(value);
+      },
+      message: 'Invalid email format',
     },
     required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,
   },
 });
 
