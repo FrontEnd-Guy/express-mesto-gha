@@ -30,6 +30,19 @@ module.exports.login = (req, res) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
+module.exports.getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).send({ message: 'Пользователь не найден' });
+    }
+    res.send(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports.getUsers = async (req, res) => {
   try {
     const users = await User.find({});
