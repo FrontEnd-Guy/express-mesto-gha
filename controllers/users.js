@@ -66,7 +66,7 @@ module.exports.createUser = async (req, res, next) => {
     return res.send(user.select('-password'));
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      throw new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
     }
     if (err.code === 11000) {
       next();
@@ -102,7 +102,7 @@ module.exports.getUser = async (req, res, next) => {
     return res.send(user);
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      throw new InvalidError(VALIDATION_USER_ID_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_USER_ID_ERROR_MESSAGE));
     }
     return next(err);
   }
@@ -119,10 +119,10 @@ module.exports.updateUserInfo = async (req, res, next) => {
     return res.send(user);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      throw new InvalidError(VALIDATION_USER_INFO_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_USER_INFO_ERROR_MESSAGE));
     }
     if (err instanceof mongoose.Error.CastError) {
-      throw new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE);
+      next(new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE));
     }
     return next(err);
   }
@@ -139,10 +139,10 @@ module.exports.updateAvatar = async (req, res, next) => {
     return res.send(user);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      throw new InvalidError(VALIDATION_USER_AVATAR_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_USER_AVATAR_ERROR_MESSAGE));
     }
     if (err instanceof mongoose.Error.CastError) {
-      throw new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE);
+      next(new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE));
     }
     return next(err);
   }

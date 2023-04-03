@@ -30,7 +30,7 @@ module.exports.createCard = async (req, res, next) => {
     return res.send(card);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      throw new InvalidError(VALIDATION_CARD_CREATE_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_CARD_CREATE_ERROR_MESSAGE));
     }
     return next(err);
   }
@@ -49,7 +49,7 @@ module.exports.deleteCard = async (req, res, next) => {
     return res.send({ message: 'Deleted' });
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      throw new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
     }
     return next(err);
   }
@@ -68,10 +68,10 @@ module.exports.likeCard = async (req, res, next) => {
     return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      throw new InvalidError(VALIDATION_CARD_LIKE_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_CARD_LIKE_ERROR_MESSAGE));
     }
     if (err instanceof mongoose.Error.CastError) {
-      throw new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
     }
     return next(err);
   }
@@ -90,10 +90,10 @@ module.exports.dislikeCard = async (req, res, next) => {
     return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      throw new InvalidError(VALIDATION_CARD_LIKE_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_CARD_LIKE_ERROR_MESSAGE));
     }
     if (err instanceof mongoose.Error.CastError) {
-      throw new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE);
+      next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
     }
     return next(err);
   }
