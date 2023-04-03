@@ -5,99 +5,110 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 const {
-  DEFAULT_ERROR_CODE,
-  NOT_FOUND_ERROR_CODE,
-  VALIDATION_ERROR_CODE,
   NOT_FOUND_USER_ERROR_MESSAGE,
   VALIDATION_USER_CREATE_ERROR_MESSAGE,
   VALIDATION_USER_INFO_ERROR_MESSAGE,
   VALIDATION_USER_AVATAR_ERROR_MESSAGE,
-  DEFAULT_ERROR_MESSAGE,
   VALIDATION_USER_ID_ERROR_MESSAGE,
+  AUTH_ERROR_MESSAGE,
 } = require('../utils/constants');
 
-module.exports.login = (req, res) => {
+const {
+  ConflictError,
+  InvalidError,
+  NotFoundError,
+  UnauthorizedError,
+} = require('../errors');
+
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      res.send({
-        token: jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' }),
-      });
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
-};
-
-// eslint-disable-next-line consistent-return
-module.exports.getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findOne({ email }).select('+password');
+
     if (!user) {
-      return res.status(404).send({ message: 'Пользователь не найден' });
+      throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
     }
-    res.send(user);
-  } catch (err) {
-    next(err);
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
+    }
+
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({ message: 'Успешный вход в систему' });
+  } catch (error) {
+    return next(error);
   }
 };
 
-module.exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.find({});
-    return res.send(users);
-  } catch (err) {
-    return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
-  }
-};
-
-module.exports.getUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (user === null) {
-      return res
-        .status(NOT_FOUND_ERROR_CODE)
-        .send({ message: NOT_FOUND_USER_ERROR_MESSAGE });
-    }
-    return res.send(user);
-  } catch (err) {
-    if (err instanceof mongoose.Error.CastError) {
-      return res.status(VALIDATION_ERROR_CODE).send({ message: VALIDATION_USER_ID_ERROR_MESSAGE });
-    }
-    return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
-  }
-};
-
-module.exports.createUser = async (req, res) => {
-  const { error } = User.validate(req.body);
-
-  if (error) {
-    return res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
-  }
-
+module.exports.createUser = async (req, res, next) => {
   try {
     const {
       name, about, avatar, email, password,
     } = req.body;
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new ConflictError('Пользователь с указанным email уже существует');
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       name, about, avatar, email, password: hashedPassword,
     });
-    const userWithoutPassword = await User.findById(user._id).select('-password');
-    return res.send(userWithoutPassword);
+    return res.send(user.select('-password'));
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return res
-        .status(VALIDATION_ERROR_CODE)
-        .send({ message: VALIDATION_USER_CREATE_ERROR_MESSAGE });
+      throw new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE);
     }
-    return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
+    if (err.code === 11000) {
+      next();
+    }
+    return next(err);
   }
 };
 
-module.exports.updateUserInfo = async (req, res) => {
+module.exports.getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    return res.status(200).json(user);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports.getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    return res.send(users);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports.getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (user === null) {
+      throw new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE);
+    }
+    return res.send(user);
+  } catch (err) {
+    if (err instanceof mongoose.Error.CastError) {
+      throw new InvalidError(VALIDATION_USER_ID_ERROR_MESSAGE);
+    }
+    return next(err);
+  }
+};
+
+module.exports.updateUserInfo = async (req, res, next) => {
   try {
     const { name, about } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -108,18 +119,16 @@ module.exports.updateUserInfo = async (req, res) => {
     return res.send(user);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return res
-        .status(VALIDATION_ERROR_CODE)
-        .send({ message: VALIDATION_USER_INFO_ERROR_MESSAGE });
+      throw new InvalidError(VALIDATION_USER_INFO_ERROR_MESSAGE);
     }
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_USER_ERROR_MESSAGE });
+      throw new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE);
     }
-    return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
+    return next(err);
   }
 };
 
-module.exports.updateAvatar = async (req, res) => {
+module.exports.updateAvatar = async (req, res, next) => {
   try {
     const { avatar } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -130,13 +139,11 @@ module.exports.updateAvatar = async (req, res) => {
     return res.send(user);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      return res
-        .status(VALIDATION_ERROR_CODE)
-        .send({ message: VALIDATION_USER_AVATAR_ERROR_MESSAGE });
+      throw new InvalidError(VALIDATION_USER_AVATAR_ERROR_MESSAGE);
     }
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(NOT_FOUND_ERROR_CODE).send({ message: NOT_FOUND_USER_ERROR_MESSAGE });
+      throw new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE);
     }
-    return res.status(DEFAULT_ERROR_CODE).send({ message: DEFAULT_ERROR_MESSAGE });
+    return next(err);
   }
 };

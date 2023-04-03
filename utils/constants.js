@@ -15,6 +15,8 @@ const VALIDATION_CARD_CREATE_ERROR_MESSAGE = 'Переданы некоррек�
 const VALIDATION_CARD_LIKE_ERROR_MESSAGE = 'Переданы некорректные данные для постановки/снятии лайка';
 const VALIDATION_CARD_ID_ERROR_MESSAGE = 'Передан несуществующий _id карточки';
 
+const AUTH_ERROR_MESSAGE = 'Неправильная почта или пароль';
+
 module.exports = {
   DEFAULT_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,
@@ -29,4 +31,5 @@ module.exports = {
   VALIDATION_CARD_CREATE_ERROR_MESSAGE,
   VALIDATION_CARD_LIKE_ERROR_MESSAGE,
   VALIDATION_CARD_ID_ERROR_MESSAGE,
+  AUTH_ERROR_MESSAGE,
 };
