@@ -3,13 +3,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, Joi, errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
-const { NOT_FOUND_ERROR_CODE } = require('./utils/constants');
 const { handleError } = require('./middlewares/errors');
+const { NotFoundError } = require('./errors/index');
 
 const app = express();
 const PORT = 3000;
@@ -43,13 +43,13 @@ const userLoginValidation = celebrate({
 app.post('/signup', userCreateValidation, createUser);
 app.post('/signin', userLoginValidation, login);
 
-app.use(auth);
+app.use('/users', auth, userRouter);
+app.use('/cards', auth, cardRouter);
 
-app.use('/users', userRouter);
-app.use('/cards', cardRouter);
-
-app.use('*', (req, res) => res.status(NOT_FOUND_ERROR_CODE).send({ message: '404. Такой страницы не существует.' }));
-
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('404. Такой страницы не существует.'));
+});
+app.use(errors());
 app.use(handleError);
 
 app.listen(PORT, () => console.log('Listening...'));
