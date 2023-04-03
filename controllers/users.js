@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
 const User = require('../models/user');
 
 const {
@@ -17,47 +16,18 @@ const {
   VALIDATION_USER_ID_ERROR_MESSAGE,
 } = require('../utils/constants');
 
-module.exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).send({ message: 'Неправильная почта или пароль' });
-    }
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      return res.status(401).send({ message: 'Неправильная почта или пароль' });
-    }
-
-    const token = jwt.sign(
-      { _id: user._id },
-      NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
-      { expiresIn: '7d' },
-    );
-
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      res.send({
+        token: jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' }),
+      });
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
     });
-
-    // return res.send({ token });
-    return res.send({ message: 'Авторизация успешна' });
-  } catch (err) {
-    return res.status(500).send({ message: 'Произошла ошибка на сервере' });
-  }
-};
-
-module.exports.getCurrentUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).send({ message: 'Пользователь не найден' });
-    }
-    return res.send(user);
-  } catch (err) {
-    return res.status(500).send({ message: 'Произошла ошибка на сервере' });
-  }
 };
 
 module.exports.getUsers = async (req, res) => {
