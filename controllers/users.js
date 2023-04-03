@@ -70,6 +70,12 @@ module.exports.getUser = async (req, res) => {
 };
 
 module.exports.createUser = async (req, res) => {
+  const { error } = User.validate(req.body);
+
+  if (error) {
+    return res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+  }
+
   try {
     const {
       name, about, avatar, email, password,
@@ -79,7 +85,8 @@ module.exports.createUser = async (req, res) => {
     const user = await User.create({
       name, about, avatar, email, password: hashedPassword,
     });
-    return res.send(user);
+    const userWithoutPassword = await User.findById(user._id).select('-password');
+    return res.send(userWithoutPassword);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
       return res
