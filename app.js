@@ -9,6 +9,7 @@ const auth = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const { NOT_FOUND_ERROR_CODE } = require('./utils/constants');
+const { handleError } = require('./middlewares/errors');
 
 const app = express();
 const PORT = 3000;
@@ -49,9 +50,6 @@ app.use('/cards', cardRouter);
 
 app.use('*', (req, res) => res.status(NOT_FOUND_ERROR_CODE).send({ message: '404. Такой страницы не существует.' }));
 
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
-  res.send({ message: err.message });
-});
+app.use(handleError);
 
 app.listen(PORT, () => console.log('Listening...'));
