@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const { login, createUser } = require('./controllers/users');
-const { auth } = require('./middlewares/auth');
+const auth = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const { NOT_FOUND_ERROR_CODE } = require('./utils/constants');
@@ -23,8 +23,11 @@ app.use(bodyParser.json());
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-app.use('/users', auth, userRouter);
-app.use('/cards', auth, cardRouter);
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
+
+app.use(auth);
+
 app.use('*', (req, res) => res.status(NOT_FOUND_ERROR_CODE).send({ message: '404. Такой страницы не существует.' }));
 
 app.listen(PORT, () => console.log('Listening...'));
