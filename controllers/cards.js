@@ -11,7 +11,7 @@ const {
 const {
   InvalidError,
   NotFoundError,
-  UnauthorizedError,
+  ForbiddenError,
 } = require('../errors');
 
 module.exports.getCards = async (req, res, next) => {
@@ -43,7 +43,7 @@ module.exports.deleteCard = async (req, res, next) => {
       throw new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE);
     }
     if (card.owner.toString() !== req.user._id) {
-      throw new UnauthorizedError('Вы не можете удалять карточки других пользователей');
+      throw new ForbiddenError('Вы не можете удалять карточки других пользователей');
     }
     await card.remove();
     return res.send({ message: 'Deleted' });

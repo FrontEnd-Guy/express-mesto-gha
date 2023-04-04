@@ -66,10 +66,10 @@ module.exports.createUser = async (req, res, next) => {
     return res.send(user.select('-password'));
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
+      return next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
     }
     if (err.code === 11000) {
-      next();
+      return next(new ConflictError('Пользователь с указанным email уже существует'));
     }
     return next(err);
   }
