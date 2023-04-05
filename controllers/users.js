@@ -35,7 +35,7 @@ module.exports.login = async (req, res, next) => {
     if (!isPasswordCorrect) {
       throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
     }
-    const token = jwt.sign({ _id: user._id }, 'super-secret-code', { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
 
     res.cookie('jwt', token, {
       httpOnly: true,
