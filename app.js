@@ -28,7 +28,7 @@ const userCreateValidation = celebrate({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().pattern(urlRegex),
-    email: Joi.string().email().required(),
+    email: Joi.string().required().email(),
     password: Joi.string().min(8).required(),
   }),
 });

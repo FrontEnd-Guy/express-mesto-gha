@@ -35,8 +35,7 @@ module.exports.login = async (req, res, next) => {
     if (!isPasswordCorrect) {
       throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
     }
-
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, 'super-secret-code', { expiresIn: '7d' });
 
     res.cookie('jwt', token, {
       httpOnly: true,
@@ -63,7 +62,8 @@ module.exports.createUser = async (req, res, next) => {
     const user = await User.create({
       name, about, avatar, email, password: hashedPassword,
     });
-    return res.send(user.select('-password'));
+    const selectedUser = await User.findById(user._id).select('-password');
+    return res.send(selectedUser);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
       return next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
@@ -77,9 +77,10 @@ module.exports.createUser = async (req, res, next) => {
 
 module.exports.getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id).select('+password');
     return res.status(200).json(user);
   } catch (error) {
+    console.log(error);
     return next(error);
   }
 };
