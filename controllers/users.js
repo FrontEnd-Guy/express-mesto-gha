@@ -6,18 +6,18 @@ const User = require('../models/user');
 
 const {
   NOT_FOUND_USER_ERROR_MESSAGE,
-  VALIDATION_USER_CREATE_ERROR_MESSAGE,
   VALIDATION_USER_INFO_ERROR_MESSAGE,
   VALIDATION_USER_AVATAR_ERROR_MESSAGE,
   VALIDATION_USER_ID_ERROR_MESSAGE,
+  VALIDATION_USER_CREATE_ERROR_MESSAGE,
   AUTH_ERROR_MESSAGE,
 } = require('../utils/constants');
 
 const {
+  UnauthorizedError,
   ConflictError,
   InvalidError,
   NotFoundError,
-  UnauthorizedError,
 } = require('../errors');
 
 module.exports.login = async (req, res, next) => {
@@ -25,62 +25,49 @@ module.exports.login = async (req, res, next) => {
 
   try {
     const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!user || !isMatch) {
       throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
     }
-
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordCorrect) {
-      throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
-    }
-    const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
-
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    return res.status(200).json({ message: 'Успешный вход в систему' });
+    const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
+    return res.cookie('jwt', token, { httpOnly: true }).send({ message: 'Успешная авторизация' });
   } catch (error) {
     return next(error);
   }
 };
 
 module.exports.createUser = async (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
   try {
-    const {
-      name, about, avatar, email, password,
-    } = req.body;
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      throw new ConflictError('Пользователь с указанным email уже существует');
-    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      name, about, avatar, email, password: hashedPassword,
+      name,
+      about,
+      avatar,
+      email,
+      password: hashedPassword,
     });
     const selectedUser = await User.findById(user._id).select('-password');
-    return res.send(selectedUser);
-  } catch (err) {
-    if (err instanceof mongoose.Error.ValidationError) {
-      return next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
-    }
-    if (err.code === 11000) {
+    return res.status(201).send(selectedUser);
+  } catch (error) {
+    if (error.code === 11000) {
       return next(new ConflictError('Пользователь с указанным email уже существует'));
     }
-    return next(err);
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
+    }
+    return next(error);
   }
 };
 
 module.exports.getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('+password');
-    return res.status(200).json(user);
+    const user = await User.findById(req.user._id);
+    return res.send(user);
   } catch (error) {
-    console.log(error);
     return next(error);
   }
 };

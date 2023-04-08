@@ -1,14 +1,15 @@
 /* eslint-disable no-console */
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
-
 const { celebrate, Joi, errors } = require('celebrate');
+
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
-const { handleError } = require('./middlewares/errors');
+const { errorHandler } = require('./middlewares/errors');
 const { NotFoundError } = require('./errors/index');
 
 const app = express();
@@ -20,6 +21,7 @@ mongoose
   .catch((error) => console.log(`Error during connection ${error}`));
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 const urlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}[-a-zA-Z0-9@:%_+.~#?&//=]*$/;
 
@@ -41,6 +43,7 @@ const userLoginValidation = celebrate({
 });
 
 app.post('/signup', userCreateValidation, createUser);
+
 app.post('/signin', userLoginValidation, login);
 
 app.use('/users', auth, userRouter);
@@ -49,7 +52,8 @@ app.use('/cards', auth, cardRouter);
 app.use('*', (req, res, next) => {
   next(new NotFoundError('404. Такой страницы не существует.'));
 });
+
 app.use(errors());
-app.use(handleError);
+app.use(errorHandler);
 
 app.listen(PORT, () => console.log('Listening...'));
