@@ -25,8 +25,11 @@ module.exports.login = async (req, res, next) => {
 
   try {
     const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
+    }
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!user || !isMatch) {
+    if (!isMatch) {
       throw new UnauthorizedError(AUTH_ERROR_MESSAGE);
     }
     const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
