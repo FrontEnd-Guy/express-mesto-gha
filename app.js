@@ -11,6 +11,7 @@ const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const { errorHandler } = require('./middlewares/errors');
 const { NotFoundError } = require('./errors/index');
+const { urlRegex } = require('./utils/constants');
 
 const app = express();
 const PORT = 3000;
@@ -22,8 +23,6 @@ mongoose
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-
-const urlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}[-a-zA-Z0-9@:%_+.~#?&//=]*$/;
 
 const userCreateValidation = celebrate({
   body: Joi.object().keys({

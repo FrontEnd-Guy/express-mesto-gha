@@ -17,6 +17,8 @@ const VALIDATION_CARD_ID_ERROR_MESSAGE = 'Передан несуществую�
 
 const AUTH_ERROR_MESSAGE = 'Неправильная почта или пароль';
 
+const urlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}[-a-zA-Z0-9@:%_+.~#?&//=]*$/;
+
 module.exports = {
   DEFAULT_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,
@@ -32,4 +34,5 @@ module.exports = {
   VALIDATION_CARD_LIKE_ERROR_MESSAGE,
   VALIDATION_CARD_ID_ERROR_MESSAGE,
   AUTH_ERROR_MESSAGE,
+  urlRegex,
 };
