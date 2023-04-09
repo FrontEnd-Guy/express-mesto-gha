@@ -38,14 +38,13 @@ module.exports.createCard = async (req, res, next) => {
 
 module.exports.deleteCard = async (req, res, next) => {
   try {
-    const card = await Card.findById(req.params.cardId);
+    const card = await Card.findByIdAndRemove(req.params.cardId);
     if (!card) {
       throw new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE);
     }
     if (card.owner.toString() !== req.user._id) {
       throw new ForbiddenError('Вы не можете удалять карточки других пользователей');
     }
-    await card.remove();
     return res.send({ message: 'Deleted' });
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
