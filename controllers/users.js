@@ -99,6 +99,24 @@ module.exports.getUser = async (req, res, next) => {
   }
 };
 
+// module.exports.getUser = async (req, res, next) => {
+//   try {
+//     const user = await User.findById(req.params.userId);
+
+//     if (!user) {
+//       throw new NotFoundError(NOT_FOUND_USER_ERROR_MESSAGE);
+//     }
+
+//     return res.send(user);
+//   } catch (err) {
+//     if (err instanceof mongoose.Error.CastError) {
+//       throw new InvalidError(VALIDATION_USER_ID_ERROR_MESSAGE);
+//     }
+
+//     return next(err);
+//   }
+// };
+
 module.exports.updateUserInfo = async (req, res, next) => {
   try {
     const { name, about } = req.body;
