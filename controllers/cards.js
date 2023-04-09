@@ -47,7 +47,7 @@ module.exports.deleteCard = async (req, res, next) => {
     } else if (card.owner.toString() !== req.user._id) {
       next(new ForbiddenError('Вы не можете удалять карточки других пользователей'));
     } else {
-      await card.remove();
+      await Card.deleteOne({ _id: req.params.cardId });
       return res.send({ message: 'Deleted' });
     }
   } catch (err) {
@@ -57,7 +57,6 @@ module.exports.deleteCard = async (req, res, next) => {
       next(err);
     }
   }
-  return null;
 };
 
 module.exports.likeCard = async (req, res, next) => {
