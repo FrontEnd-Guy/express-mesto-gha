@@ -5,7 +5,6 @@ const auth = (req, res, next) => {
   const token = req.cookies.jwt;
   if (!token) {
     throw new UnauthorizedError('Необходима авторизация');
-    // return res.status(401).send({ message: 'Необходима авторизация' });
   }
   try {
     const payload = jwt.verify(token, 'secret-key');
@@ -13,7 +12,6 @@ const auth = (req, res, next) => {
     return next();
   } catch (error) {
     throw new UnauthorizedError('Необходима авторизация');
-    // return res.status(401).send({ message: 'Необходима авторизация' });
   }
 };
 
