@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 const mongoose = require('mongoose');
 
 const Card = require('../models/card');
@@ -16,12 +15,10 @@ const {
 
 module.exports.getCards = async (req, res, next) => {
   try {
-    const cards = await Card.find({})
-      .populate('owner')
-      .populate('likes');
+    const cards = await Card.find({}).populate(['owner', 'likes']);
     return res.send(cards);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -32,10 +29,9 @@ module.exports.createCard = async (req, res, next) => {
     return res.status(201).send(card);
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      next(new InvalidError(VALIDATION_CARD_CREATE_ERROR_MESSAGE));
-    } else {
-      next(err);
+      return next(new InvalidError(VALIDATION_CARD_CREATE_ERROR_MESSAGE));
     }
+    return next(err);
   }
 };
 
@@ -43,19 +39,18 @@ module.exports.deleteCard = async (req, res, next) => {
   try {
     const card = await Card.findById(req.params.cardId);
     if (!card) {
-      next(new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE));
-    } else if (card.owner.toString() !== req.user._id) {
-      next(new ForbiddenError('Вы не можете удалять карточки других пользователей'));
-    } else {
-      await Card.deleteOne({ _id: req.params.cardId });
-      return res.send({ message: 'Deleted' });
+      return next(new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE));
     }
+    if (card.owner.toString() !== req.user._id) {
+      return next(new ForbiddenError('Вы не можете удалять карточки других пользователей'));
+    }
+    await Card.deleteOne({ _id: req.params.cardId });
+    return res.send({ message: 'Deleted' });
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
-    } else {
-      next(err);
+      return next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
     }
+    return next(err);
   }
 };
 
@@ -68,16 +63,14 @@ module.exports.likeCard = async (req, res, next) => {
     );
 
     if (card === null) {
-      next(new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE));
-    } else {
-      return res.send(card.likes);
+      return next(new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE));
     }
+    return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
-    } else {
-      next(err);
+      return next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
     }
+    return next(err);
   }
 };
 
@@ -90,15 +83,13 @@ module.exports.dislikeCard = async (req, res, next) => {
     );
 
     if (card === null) {
-      next(new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE));
-    } else {
-      return res.send(card.likes);
+      return next(new NotFoundError(NOT_FOUND_CARD_ERROR_MESSAGE));
     }
+    return res.send(card.likes);
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
-      next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
-    } else {
-      next(err);
+      return next(new InvalidError(VALIDATION_CARD_ID_ERROR_MESSAGE));
     }
+    return next(err);
   }
 };

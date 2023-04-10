@@ -1,5 +1,3 @@
-/* eslint-disable consistent-return */
-/* eslint-disable no-else-return */
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -60,11 +58,11 @@ module.exports.createUser = async (req, res, next) => {
   } catch (error) {
     if (error.code === 11000) {
       return next(new ConflictError('Пользователь с указанным email уже существует'));
-    } else if (error instanceof mongoose.Error.ValidationError) {
-      next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
-    } else {
-      next(error);
     }
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(new InvalidError(VALIDATION_USER_CREATE_ERROR_MESSAGE));
+    }
+    return next(error);
   }
 };
 
@@ -73,7 +71,7 @@ module.exports.getCurrentUser = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     return res.send(user);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -82,7 +80,7 @@ module.exports.getUsers = async (req, res, next) => {
     const users = await User.find({});
     return res.send(users);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -96,9 +94,8 @@ module.exports.getUser = async (req, res, next) => {
   } catch (err) {
     if (err instanceof mongoose.Error.CastError) {
       return next(new InvalidError(VALIDATION_USER_ID_ERROR_MESSAGE));
-    } else {
-      next(err);
     }
+    return next(err);
   }
 };
 
@@ -114,9 +111,8 @@ module.exports.updateUserInfo = async (req, res, next) => {
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
       return next(new InvalidError(VALIDATION_USER_INFO_ERROR_MESSAGE));
-    } else {
-      next(err);
     }
+    return next(err);
   }
 };
 
@@ -132,8 +128,7 @@ module.exports.updateAvatar = async (req, res, next) => {
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
       return next(new InvalidError(VALIDATION_USER_AVATAR_ERROR_MESSAGE));
-    } else {
-      next(err);
     }
+    return next(err);
   }
 };
